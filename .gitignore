@@ -1,2 +1,5 @@
 # PyCharm IDE files
 .idea/
+
+# Environment variables
+.env
