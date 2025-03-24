@@ -1,7 +1,9 @@
 from src.links.router import router as links_router
+from src.schemas import RootResponse
+from src.auth.users import auth_backend, current_active_user, fastapi_users
+from src.auth.schemas import UserCreate, UserRead
 
 from fastapi import FastAPI
-from pydantic import BaseModel
 import uvicorn
 
 from contextlib import asynccontextmanager
@@ -15,11 +17,8 @@ async def lifespan(_: FastAPI):
 app = FastAPI(title='Link shortening API', lifespan=lifespan)
 
 app.include_router(links_router)
-
-
-class RootResponse(BaseModel):
-    info: str
-    status: str
+app.include_router(fastapi_users.get_auth_router(auth_backend), prefix='/auth/jwt', tags=['auth'])
+app.include_router(fastapi_users.get_register_router(UserRead, UserCreate), prefix='/auth', tags=['auth'])
 
 
 @app.get('/', response_model=RootResponse)
@@ -30,4 +29,4 @@ async def root():
 
 
 if __name__ == '__main__':
-    uvicorn.run('main:app', host='0.0.0.0', reload=True)
+    uvicorn.run('src.main:app', host='0.0.0.0', reload=True)
