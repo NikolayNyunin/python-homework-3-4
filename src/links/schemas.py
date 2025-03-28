@@ -5,12 +5,13 @@ from datetime import datetime
 
 class CreateRequest(BaseModel):
     url: str
-    custom_alias: str = None
-    expires_at: datetime = None
+    custom_alias: str | None = None
+    expires_at: datetime | None = None
 
 
 class UpdateRequest(BaseModel):
     new_url: str
+    expires_at: datetime | None = None
 
 
 class APIResponse(BaseModel):
@@ -23,4 +24,6 @@ class StatsResponse(BaseModel):
 
 class SearchResponse(BaseModel):
     short_code: str
-    short_url: str
+    original_url: str
+    created_at: datetime
+    expires_at: datetime | None = None

@@ -1,6 +1,7 @@
 from src.links.router import router as links_router
 from src.schemas import RootResponse
-from src.auth.users import auth_backend, current_active_user, fastapi_users
+from src.auth.database import create_db_and_tables
+from src.auth.users import auth_backend, fastapi_users
 from src.auth.schemas import UserCreate, UserRead
 
 from fastapi import FastAPI
@@ -11,6 +12,7 @@ from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    await create_db_and_tables()
     yield
 
 
