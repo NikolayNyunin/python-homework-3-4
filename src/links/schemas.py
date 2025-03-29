@@ -1,17 +1,17 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, HttpUrl
 
 from datetime import datetime
 
 
 class CreateRequest(BaseModel):
-    url: str
+    url: HttpUrl
     custom_alias: str | None = None
     expires_at: datetime | None = None
 
 
 class UpdateRequest(BaseModel):
-    new_url: str
-    expires_at: datetime | None = None
+    new_url: HttpUrl
+    expires_at: datetime | bool | None = None
 
 
 class APIResponse(BaseModel):
@@ -19,11 +19,16 @@ class APIResponse(BaseModel):
 
 
 class StatsResponse(BaseModel):
-    pass
+    short_code: str
+    original_url: HttpUrl
+    created_at: datetime
+    expires_at: datetime | None
+    redirect_count: int
+    last_redirect_at: datetime | None
 
 
 class SearchResponse(BaseModel):
     short_code: str
-    original_url: str
+    original_url: HttpUrl
     created_at: datetime
-    expires_at: datetime | None = None
+    expires_at: datetime | None
