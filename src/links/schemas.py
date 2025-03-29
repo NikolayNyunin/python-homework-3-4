@@ -24,7 +24,7 @@ class StatsResponse(BaseModel):
     created_at: datetime
     expires_at: datetime | None
     redirect_count: int
-    last_redirect_at: datetime | None
+    latest_redirect_at: datetime | None
 
 
 class SearchResponse(BaseModel):

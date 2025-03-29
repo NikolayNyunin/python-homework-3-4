@@ -2,12 +2,13 @@ from src.database import get_async_session
 from src.auth.database import User
 from src.auth.users import current_active_user
 from src.links.schemas import CreateRequest, UpdateRequest, APIResponse, StatsResponse, SearchResponse
-from src.links.models import Link
+from src.links.models import Link, Redirect
 from src.links.utils import validate_short_code, is_free, generate_short_code
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import RedirectResponse
 from sqlalchemy import select, insert
+from sqlalchemy.sql import func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import NoResultFound
 from pydantic import HttpUrl
@@ -89,6 +90,8 @@ async def redirect(short_code: str, session: AsyncSession = Depends(get_async_se
         query = select(Link).where(Link.short_code == short_code)
         result = await session.execute(query)
         link = result.scalar_one()
+        await session.execute(insert(Redirect).values(link_id=link.id))
+        await session.commit()
         return RedirectResponse(url=link.original_url, status_code=HTTPStatus.PERMANENT_REDIRECT)
 
     except NoResultFound:
@@ -105,8 +108,45 @@ async def get_stats(short_code: str,
                     user: User = Depends(current_active_user)):
     """Получение статистики использования короткой ссылки."""
 
-    raise NotImplementedError
-    # TODO: implement
+    try:
+        query = select(Link).where(Link.short_code == short_code)
+        result = await session.execute(query)
+        link = result.scalar_one()
+
+        if link.user_id != user.id:
+            raise HTTPException(status_code=HTTPStatus.FORBIDDEN,
+                                detail=f'You do not have the rights to view stats for the link with short code {short_code}')
+
+        redirect_count_query = select(func.count()).where(Redirect.link_id == link.id)
+        redirect_count_result = await session.execute(redirect_count_query)
+        redirect_count = redirect_count_result.scalar_one()
+
+        latest_redirect_query = select(Redirect).where(Redirect.link_id == link.id).order_by(Redirect.timestamp.desc()).limit(1)
+        latest_redirect_result = await session.execute(latest_redirect_query)
+        latest_redirect = latest_redirect_result.scalar_one_or_none()
+        if latest_redirect is not None:
+            latest_redirect_at = latest_redirect.timestamp
+        else:
+            latest_redirect_at = None
+
+        return {
+            'short_code': link.short_code,
+            'original_url': link.original_url,
+            'created_at': link.created_at,
+            'expires_at': link.expires_at,
+            'redirect_count': redirect_count,
+            'latest_redirect_at': latest_redirect_at
+        }
+
+    except NoResultFound:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND,
+                            detail=f'Link with short code {short_code} does not exist')
+
+    except HTTPException as e:
+        raise e
+
+    except Exception as e:
+        raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=str(e))
 
 
 @router.put('/{short_code}', response_model=APIResponse)
