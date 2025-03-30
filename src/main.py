@@ -1,3 +1,4 @@
+from src.config import REDIS_HOST, REDIS_PORT
 from src.database import get_async_session
 from src.links.router import router as links_router
 from src.links.models import Link
@@ -10,6 +11,10 @@ from fastapi import FastAPI, Request
 import uvicorn
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
+from redis import asyncio as aioredis
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
+from fastapi_cache.decorator import cache
 
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -19,6 +24,8 @@ from typing import Callable
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     await create_db_and_tables()
+    redis = aioredis.from_url(f'redis://{REDIS_HOST}:{REDIS_PORT}')
+    FastAPICache.init(RedisBackend(redis), prefix='fastapi-cache')
     yield
 
 
@@ -48,6 +55,7 @@ async def cleanup_middleware(request: Request, call_next: Callable):
 
 
 @app.get('/', response_model=RootResponse)
+@cache(expire=3600)
 async def root():
     """Получение основной информации о приложении."""
 

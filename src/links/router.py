@@ -12,12 +12,21 @@ from sqlalchemy.sql import func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import NoResultFound
 from pydantic import HttpUrl
+from fastapi_cache.decorator import cache
+from fastapi_cache import FastAPICache, default_key_builder
 
 from http import HTTPStatus
 from datetime import datetime, timezone
 from typing import List
 
 router = APIRouter(prefix='/links', tags=['links'])
+
+
+def custom_key_builder(*args, **kwargs):
+    """Генератор ключей для кэширования."""
+
+    key = default_key_builder(*args, **kwargs)
+    return f"{':'.join(key.split(':')[:-1])}:{kwargs['kwargs']['short_code']}"
 
 
 @router.post('/shorten', response_model=APIResponse, status_code=HTTPStatus.CREATED)
@@ -50,6 +59,11 @@ async def create(request: CreateRequest,
                                         original_url=str(request.url), expires_at=request.expires_at)
         await session.execute(statement)
         await session.commit()
+
+        # Очистка кэша статистики ссылки (если вдруг статистику пытались получить до создания ссылки)
+        redis = FastAPICache.get_backend()
+        await redis.clear(key=f'fastapi-cache:links_stats:{short_code}')
+
         return {'info': f'Link with short code {short_code} was created successfully'}
 
     except HTTPException as e:
@@ -92,6 +106,11 @@ async def redirect(short_code: str, session: AsyncSession = Depends(get_async_se
         link = result.scalar_one()
         await session.execute(insert(Redirect).values(link_id=link.id))
         await session.commit()
+
+        # Очистка кэша статистики ссылки
+        redis = FastAPICache.get_backend()
+        await redis.clear(key=f'fastapi-cache:links_stats:{short_code}')
+
         return RedirectResponse(url=link.original_url, status_code=HTTPStatus.PERMANENT_REDIRECT)
 
     except NoResultFound:
@@ -103,6 +122,7 @@ async def redirect(short_code: str, session: AsyncSession = Depends(get_async_se
 
 
 @router.get('/{short_code}/stats', response_model=StatsResponse)
+@cache(expire=60, namespace='links_stats', key_builder=custom_key_builder)
 async def get_stats(short_code: str,
                     session: AsyncSession = Depends(get_async_session),
                     user: User = Depends(current_active_user)):
@@ -183,6 +203,11 @@ async def update(short_code: str,
 
         link.original_url = str(request.new_url)
         await session.commit()
+
+        # Очистка кэша статистики ссылки
+        redis = FastAPICache.get_backend()
+        await redis.clear(key=f'fastapi-cache:links_stats:{short_code}')
+
         return {'info': f'Link with short code {short_code} was updated successfully'}
 
     except NoResultFound:
@@ -213,6 +238,11 @@ async def delete(short_code: str,
 
         await session.delete(link)
         await session.commit()
+
+        # Очистка кэша статистики ссылки
+        redis = FastAPICache.get_backend()
+        await redis.clear(key=f'fastapi-cache:links_stats:{short_code}')
+
         return {'info': f'Link with short code {short_code} was deleted successfully'}
 
     except NoResultFound:
