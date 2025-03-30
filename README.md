@@ -8,6 +8,20 @@
 - [Структура проекта](#структура-проекта)
 - [Запуск проекта](#запуск-проекта)
 - [Методы API](#методы-api)
+  - [Root](#1-root)
+    - [GET /](#11-get-)
+  - [Auth](#2-auth)
+    - [POST /auth/register](#21-post-authregister)
+    - [POST /auth/jwt/login](#22-post-authjwtlogin)
+    - [POST /auth/jwt/logout](#23-post-authjwtlogout)
+  - [Links](#3-links)
+    - [POST /links/shorten](#31-post-linksshorten)
+    - [GET /links/search?original_url={original_url}](#32-get-linkssearchoriginal_urloriginal_url)
+    - [GET /links/user](#33-get-linksuser)
+    - [GET /links/{short_code}](#34-get-linksshort_code)
+    - [GET /links/{short_code}/stats](#35-get-linksshort_codestats)
+    - [PUT /links/{short_code}](#36-put-linksshort_code)
+    - [DELETE /links/{short_code}](#37-delete-linksshort_code)
 
 ## Описание
 
@@ -71,9 +85,9 @@ docker compose up
 
 ## Методы API
 
-### Root
+### 1. Root
 
-#### GET `/`
+#### 1.1. GET `/`
 
 Получение основной информации о приложении.
 
@@ -88,9 +102,9 @@ docker compose up
 {"info": "API для создания коротких ссылок", "status": "OK"}
 ```
 
-### Auth
+### 2. Auth
 
-#### POST `/auth/register`
+#### 2.1. POST `/auth/register`
 
 Регистрация пользователя.
 
@@ -129,7 +143,7 @@ docker compose up
 {"detail": "REGISTER_USER_ALREADY_EXISTS"}
 ```
 
-#### POST `/auth/jwt/login`
+#### 2.2. POST `/auth/jwt/login`
 
 Вход в аккаунт.
 
@@ -156,16 +170,16 @@ _x-www-form-urlencoded_
 {"detail": "LOGIN_BAD_CREDENTIALS"}
 ```
 
-#### POST `/auth/jwt/logout`
+#### 2.3. POST `/auth/jwt/logout`
 
 Выход из аккаунта.
 
 - Авторизация: **ДА**
 - Кэширование: **НЕТ**
 
-### Links
+### 3. Links
 
-#### POST `/links/shorten`
+#### 3.1. POST `/links/shorten`
 
 Создание короткой ссылки.
 
@@ -205,7 +219,7 @@ _x-www-form-urlencoded_
 {"detail": "Custom alias is already taken"}
 ```
 
-#### GET `/links/search?original_url={original_url}`
+#### 3.2. GET `/links/search?original_url={original_url}`
 
 Поиск короткой ссылки по оригинальному URL.
 
@@ -227,7 +241,7 @@ _x-www-form-urlencoded_
 ]
 ```
 
-#### GET `/links/user`
+#### 3.3. GET `/links/user`
 
 Получение всех ссылок, созданных данным пользователем.
 
@@ -249,7 +263,7 @@ _x-www-form-urlencoded_
 ]
 ```
 
-#### GET `/links/{short_code}`
+#### 3.4. GET `/links/{short_code}`
 
 Использование короткой ссылки (перенаправление по оригинальному URL).
 
@@ -270,7 +284,7 @@ _x-www-form-urlencoded_
 {"detail": "Link with short code ggl does not exist"}
 ```
 
-#### GET `/links/{short_code}/stats`
+#### 3.5. GET `/links/{short_code}/stats`
 
 Получение статистики использования короткой ссылки.
 
@@ -304,7 +318,7 @@ _x-www-form-urlencoded_
 {"detail": "You do not have the rights to view stats for the link with short code ggl"}
 ```
 
-#### PUT `/links/{short_code}`
+#### 3.6. PUT `/links/{short_code}`
 
 Обновление короткой ссылки.
 
@@ -342,7 +356,7 @@ _x-www-form-urlencoded_
 {"detail": "Field expires_at must be a datetime, False or None"}
 ```
 
-#### DELETE `/links/{short_code}`
+#### 3.7. DELETE `/links/{short_code}`
 
 Удаление короткой ссылки.
 
