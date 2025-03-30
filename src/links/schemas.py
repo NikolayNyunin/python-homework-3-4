@@ -18,6 +18,13 @@ class APIResponse(BaseModel):
     info: str
 
 
+class SearchResponse(BaseModel):
+    short_code: str
+    original_url: HttpUrl
+    created_at: datetime
+    expires_at: datetime | None
+
+
 class StatsResponse(BaseModel):
     short_code: str
     original_url: HttpUrl
@@ -25,10 +32,3 @@ class StatsResponse(BaseModel):
     expires_at: datetime | None
     redirect_count: int
     latest_redirect_at: datetime | None
-
-
-class SearchResponse(BaseModel):
-    short_code: str
-    original_url: HttpUrl
-    created_at: datetime
-    expires_at: datetime | None

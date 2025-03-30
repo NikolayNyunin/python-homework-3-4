@@ -26,7 +26,7 @@ async def is_free(short_code: str, session: AsyncSession) -> bool:
 
     query = select(Link).where(Link.short_code == short_code)
     result = await session.execute(query)
-    if result.scalar_one_or_none():
+    if result.scalar_one_or_none() or short_code in ('shorten', 'search', 'user'):
         return False
     return True
 

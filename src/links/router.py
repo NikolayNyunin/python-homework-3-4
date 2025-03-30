@@ -96,6 +96,29 @@ async def search(original_url: HttpUrl, session: AsyncSession = Depends(get_asyn
         raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=str(e))
 
 
+@router.get('/user', response_model=List[SearchResponse])
+async def user_links(session: AsyncSession = Depends(get_async_session), user: User = Depends(current_active_user)):
+    """Получение всех ссылок, созданных данным пользователем."""
+
+    try:
+        query = select(Link).where(Link.user_id == user.id)
+        result = await session.execute(query)
+        links = result.scalars().all()
+
+        user_links_result = []
+        for link in links:
+            user_links_result.append({
+                'short_code': link.short_code,
+                'original_url': link.original_url,
+                'created_at': link.created_at,
+                'expires_at': link.expires_at
+            })
+        return user_links_result
+
+    except Exception as e:
+        raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail=str(e))
+
+
 @router.get('/{short_code}', status_code=HTTPStatus.PERMANENT_REDIRECT)
 async def redirect(short_code: str, session: AsyncSession = Depends(get_async_session)):
     """Использование короткой ссылки (перенаправление по оригинальному URL)."""
