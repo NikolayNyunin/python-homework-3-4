@@ -44,7 +44,7 @@ async def create(request: CreateRequest,
                                     detail='Custom alias must consist of 3 to 10 latin letters or numbers')
             # Проверка, что идентификатор не занят
             if not await is_free(request.custom_alias, session):
-                raise HTTPException(status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
+                raise HTTPException(status_code=HTTPStatus.CONFLICT,
                                     detail='Custom alias is already taken')
             short_code = request.custom_alias
         else:
@@ -97,7 +97,7 @@ async def search(original_url: HttpUrl, session: AsyncSession = Depends(get_asyn
 
 
 @router.get('/user', response_model=List[SearchResponse])
-async def user_links(session: AsyncSession = Depends(get_async_session), user: User = Depends(current_active_user)):
+async def get_user_links(session: AsyncSession = Depends(get_async_session), user: User = Depends(current_active_user)):
     """Получение всех ссылок, созданных данным пользователем."""
 
     try:
