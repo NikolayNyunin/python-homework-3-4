@@ -96,6 +96,8 @@
 - `alembic.ini` — конфигурационный файл Alembic;
 - `Dockerfile` — конфигурационный файл Docker;
 - `compose.yaml` — конфигурационный файл Docker Compose;
+- `pytest.ini` — конфигурационный файл pytest;
+- `.coveragerc` — конфигурационный файл coverage;
 - `requirements.txt` — текстовый файл с перечислением зависимостей приложения;
 - `.gitignore` — текстовый файл с перечислением исключённых из Git путей.
 
@@ -256,7 +258,7 @@ _x-www-form-urlencoded_
 {
   "url": "https://google.com",
   "custom_alias": "ggl",
-  "expires_at": "2025-04-01"
+  "expires_at": "2030-01-01T00:00:00.000000Z"
 }
 ```
 
@@ -393,7 +395,7 @@ _x-www-form-urlencoded_
 ```json
 {
   "new_url": "https://yandex.ru",
-  "expires_at": "2025-04-01"
+  "expires_at": "2030-01-01T00:00:00.000000Z"
 }
 ```
 
@@ -451,7 +453,29 @@ _x-www-form-urlencoded_
 
 ### Покрытие кода
 
-[//]: # (TODO: work in progress)
+Общий процент покрытия кода в модуле `src/`  — $91\%$.
+
+```
+---------- coverage: platform win32, python 3.12.7-final-0 -----------
+Name                    Stmts   Miss  Cover
+-------------------------------------------
+src\__init__.py             0      0   100%
+src\auth\__init__.py        0      0   100%
+src\auth\database.py       13      3    77%
+src\auth\schemas.py         6      0   100%
+src\auth\users.py          25      5    80%
+src\config.py              10      0   100%
+src\database.py             8      0   100%
+src\links\__init__.py       0      0   100%
+src\links\models.py        20      0   100%
+src\links\router.py       154     15    90%
+src\links\schemas.py       23      0   100%
+src\links\utils.py         25      1    96%
+src\main.py                43      7    84%
+src\schemas.py              4      0   100%
+-------------------------------------------
+TOTAL                     331     31    91%
+```
 
 ### Запуск тестов
 
@@ -459,7 +483,7 @@ _x-www-form-urlencoded_
 запустить юнит- и функциональные тесты и проверить процент покрытия кода можно при помощи команды:
 
 ```bash
-python -m pytest --cov=src --cov-report=term-missing
+python -m pytest --cov=src --cov-report=term
 ```
 
 Для проведения нагрузочного тестирования можно использовать команду:
@@ -478,9 +502,13 @@ locust -f tests/load/locustfile.py
 отвечающие за проверку и генерацию кодов коротких ссылок.
 Остальной код приложения удобнее и логичнее проверять функциональными тестами.
 
+Папка с юнит-тестами — `tests/unit/`.
+
 ### Функциональное тестирование
 
-[//]: # (TODO: work in progress)
+Функциональными тестами покрыты все эндпоинты реализованного API.
+
+Папка с функциональными тестами — `tests/functional/`.
 
 ### Нагрузочное тестирование
 
